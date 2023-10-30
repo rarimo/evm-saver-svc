@@ -5,13 +5,14 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	gobind "github.com/rarimo/evm-bridge-contracts/gobind/contracts/interfaces/handlers"
 	"github.com/rarimo/evm-saver-svc/internal/config"
-	"github.com/rarimo/evm-saver-svc/internal/ethtorarimo"
+	"github.com/rarimo/evm-saver-svc/internal/rarimo"
+	events2 "github.com/rarimo/evm-saver-svc/internal/rarimo/events"
+	"github.com/rarimo/saver-grpc-lib/metrics"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"gitlab.com/distributed_lab/running"
-	gobind "gitlab.com/rarimo/contracts/evm-bridge/gobind/ierc20"
-	"gitlab.com/rarimo/savers/saver-grpc-lib/metrics"
 )
 
 func RunIERC20Listener(ctx context.Context, cfg config.Config) {
@@ -27,7 +28,7 @@ func RunIERC20Listener(ctx context.Context, cfg config.Config) {
 	listener := ierc20Listener{
 		listener: newListener(cfg),
 		handler:  handler,
-		msger:    ethtorarimo.CreateMessageMaker[*ethtorarimo.IERC20Event](cfg),
+		msger:    rarimo.NewMessageMaker(cfg),
 	}
 
 	running.WithBackOff(ctx, log, runnerName,
@@ -38,7 +39,7 @@ func RunIERC20Listener(ctx context.Context, cfg config.Config) {
 type ierc20Listener struct {
 	*listener
 	handler *gobind.IERC20Handler
-	msger   ethtorarimo.TxMsger[*ethtorarimo.IERC20Event]
+	msger   *rarimo.MessageMaker
 }
 
 func (l *ierc20Listener) subscription(ctx context.Context) error {
@@ -99,7 +100,7 @@ func (l *ierc20Listener) subscription(ctx context.Context) error {
 			"log_index": e.Raw.Index,
 		}).Debug("got event")
 
-		err := ethtorarimo.MakeAndBroadcastMsg(ctx, l.msger, l.broadcaster, &ethtorarimo.IERC20Event{e})
+		err := rarimo.MakeAndBroadcastMsg(ctx, l.msger, l.broadcaster, &events2.IERC20Event{E: e})
 		if err != nil {
 			return errors.Wrap(err, "failed to process event")
 		}

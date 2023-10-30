@@ -5,13 +5,14 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	gobind "github.com/rarimo/evm-bridge-contracts/gobind/contracts/interfaces/handlers"
 	"github.com/rarimo/evm-saver-svc/internal/config"
-	"github.com/rarimo/evm-saver-svc/internal/ethtorarimo"
+	"github.com/rarimo/evm-saver-svc/internal/rarimo"
+	events2 "github.com/rarimo/evm-saver-svc/internal/rarimo/events"
+	"github.com/rarimo/saver-grpc-lib/metrics"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"gitlab.com/distributed_lab/running"
-	gobind "gitlab.com/rarimo/contracts/evm-bridge/gobind/inative"
-	"gitlab.com/rarimo/savers/saver-grpc-lib/metrics"
 )
 
 func RunNativeListener(ctx context.Context, cfg config.Config) {
@@ -27,7 +28,7 @@ func RunNativeListener(ctx context.Context, cfg config.Config) {
 	listener := nativeListener{
 		listener: newListener(cfg),
 		handler:  handler,
-		msger:    ethtorarimo.CreateMessageMaker[*ethtorarimo.INativeEvent](cfg),
+		msger:    rarimo.NewMessageMaker(cfg),
 	}
 
 	running.WithBackOff(ctx, log, runnerName,
@@ -38,7 +39,7 @@ func RunNativeListener(ctx context.Context, cfg config.Config) {
 type nativeListener struct {
 	*listener
 	handler *gobind.INativeHandler
-	msger   ethtorarimo.TxMsger[*ethtorarimo.INativeEvent]
+	msger   *rarimo.MessageMaker
 }
 
 func (l *nativeListener) subscription(ctx context.Context) error {
@@ -99,7 +100,7 @@ func (l *nativeListener) subscription(ctx context.Context) error {
 			"log_index": e.Raw.Index,
 		}).Debug("got event")
 
-		err := ethtorarimo.MakeAndBroadcastMsg(ctx, l.msger, l.broadcaster, &ethtorarimo.INativeEvent{e})
+		err := rarimo.MakeAndBroadcastMsg(ctx, l.msger, l.broadcaster, &events2.INativeEvent{E: e})
 		if err != nil {
 			return errors.Wrap(err, "failed to process event")
 		}

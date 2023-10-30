@@ -1,13 +1,12 @@
 package config
 
 import (
-	"github.com/rarimo/evm-saver-svc/pkg/ipfs"
+	"github.com/rarimo/saver-grpc-lib/broadcaster"
+	"github.com/rarimo/saver-grpc-lib/metrics"
+	"github.com/rarimo/saver-grpc-lib/voter"
 	"github.com/tendermint/tendermint/rpc/client/http"
 	"gitlab.com/distributed_lab/kit/comfig"
 	"gitlab.com/distributed_lab/kit/kv"
-	"gitlab.com/rarimo/savers/saver-grpc-lib/broadcaster"
-	"gitlab.com/rarimo/savers/saver-grpc-lib/metrics"
-	"gitlab.com/rarimo/savers/saver-grpc-lib/voter"
 	"google.golang.org/grpc"
 )
 
@@ -15,7 +14,6 @@ type Config interface {
 	comfig.Logger
 	comfig.Listenerer
 	broadcaster.Broadcasterer
-	ipfs.IPFSer
 	voter.Subscriberer
 	metrics.Profilerer
 
@@ -28,7 +26,6 @@ type config struct {
 	comfig.Logger
 	comfig.Listenerer
 	broadcaster.Broadcasterer
-	ipfs.IPFSer
 	voter.Subscriberer
 	metrics.Profilerer
 
@@ -45,7 +42,6 @@ func New(getter kv.Getter) Config {
 		Logger:        comfig.NewLogger(getter, comfig.LoggerOpts{}),
 		Listenerer:    comfig.NewListenerer(getter),
 		Broadcasterer: broadcaster.New(getter),
-		IPFSer:        ipfs.NewIPFSer(getter),
 		Subscriberer:  voter.NewSubscriberer(getter),
 		Profilerer:    metrics.New(getter),
 	}

@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/rarimo/evm-saver-svc/internal/config"
+	"github.com/rarimo/saver-grpc-lib/broadcaster"
 	"gitlab.com/distributed_lab/logan/v3"
-	"gitlab.com/rarimo/savers/saver-grpc-lib/broadcaster"
 )
 
 const MaxBlocksPerRequest = 100

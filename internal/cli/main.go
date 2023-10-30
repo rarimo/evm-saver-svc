@@ -67,10 +67,7 @@ func Run(args []string) bool {
 
 	runSaver := func() {
 		cfg.Log().Info("starting all savers")
-
 		run(evm.RunIERC20Listener, "erc20-listener")
-		run(evm.RunIERC721Listener, "erc721-listener")
-		run(evm.RunIERC1155Listener, "erc1155-listener")
 		run(evm.RunNativeListener, "native-listener")
 	}
 
