@@ -34,12 +34,6 @@ core:
 cosmos:
   addr: validator:9090
 
-infura_ipfs_gateway:
-  credentials:
-    - gateway_url: https://ipfs.infura.io:5001
-      project_secret: 
-      project_id: 
-
 subscriber:
   min_retry_period: 10s
   max_retry_period: 10s
